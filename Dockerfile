@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
+FROM --platform=linux/amd64 golang:1.26.1-alpine@sha256:d337ecb3075f0ec76d81652b3fa52af47c3eba6c8ba9f93b835752df7ce62946 AS builder
+
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+COPY . .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false \
+    -ldflags="-s -w -X github.com/ironsh/iron-proxy/internal/version.Version=0.49.0-scone.1" \
+    -o /out/iron-proxy ./cmd/iron-proxy
+
+FROM --platform=linux/amd64 alpine/openssl:3.5.4@sha256:42c7389ef077aed0eb4e96d0abbd094083d701bbaff1313073b061c0c9cd8278
+COPY --from=builder /out/iron-proxy /usr/local/bin/iron-proxy
+COPY LICENSE /usr/local/share/licenses/iron-proxy/LICENSE
+ENTRYPOINT ["iron-proxy"]
