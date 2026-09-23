@@ -220,6 +220,7 @@ Transforms run in order. Built-in transforms:
 | `allowlist`    | Permits requests to matching domains/CIDRs; rejects everything else (403).                                              |
 | `secrets`      | Scans headers (and optionally query, path, or body) for proxy tokens and swaps in real secrets from environment variables. |
 | `body_capture` | Records decoded request bodies of matching hosts as `request_body` audit fields. Observation-only; never rejects.       |
+| `rate_limit`   | Transparently throttles an exact endpoint independently for each client IP.                                                |
 
 ## Configuration
 
@@ -391,6 +392,29 @@ Both transforms reject unknown YAML fields. CONNECT establishes transport;
 the inner HTTP request is evaluated separately. Place `request_policy` before
 `secrets` to constrain placeholder values and `json_rpc` after `secrets` when
 its path must match the rewritten upstream path.
+
+### Request rate limits
+
+`rate_limit` transparently delays requests to an exact host, port, and path.
+Each client IP receives an independent token bucket for each rule. `burst`
+defaults to one; increasing it permits that many immediate requests while
+preserving the configured long-term rate.
+
+```yaml
+transforms:
+  - name: rate_limit
+    config:
+      rules:
+        - host: "rpc.example.com"
+          port: "443"
+          path: "/rpc"
+          requests_per_second: 50
+          burst: 1
+```
+
+Place the transform after `secrets` when secret replacement rewrites the
+upstream path. Waiting respects request cancellation and does not return a
+synthetic `429` response.
 
 ### Ports, private upstreams, and timeouts
 

@@ -45,6 +45,7 @@ import (
 	_ "github.com/ironsh/iron-proxy/internal/transform/jsonrpc"
 	_ "github.com/ironsh/iron-proxy/internal/transform/judge"
 	_ "github.com/ironsh/iron-proxy/internal/transform/oauth"
+	_ "github.com/ironsh/iron-proxy/internal/transform/ratelimit"
 	_ "github.com/ironsh/iron-proxy/internal/transform/requestpolicy"
 	_ "github.com/ironsh/iron-proxy/internal/transform/secrets"
 )
