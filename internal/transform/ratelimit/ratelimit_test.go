@@ -58,6 +58,23 @@ rules:
 	}
 }
 
+func TestRateLimitCanScopeWholeHost(t *testing.T) {
+	limiter := loadLimiter(t, `
+rules:
+  - host: rpc.example.com
+    port: "443"
+    requests_per_second: 50
+`)
+	for _, path := range []string{"/", "/rpc", "/another-endpoint"} {
+		req := &http.Request{
+			Method: http.MethodPost,
+			Host:   "rpc.example.com",
+			URL:    &url.URL{Scheme: "https", Path: path},
+		}
+		require.NotNil(t, limiter.match(req))
+	}
+}
+
 func TestRateLimitRejectsUnknownFields(t *testing.T) {
 	var node yaml.Node
 	require.NoError(t, yaml.Unmarshal([]byte(`

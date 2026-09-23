@@ -395,7 +395,8 @@ its path must match the rewritten upstream path.
 
 ### Request rate limits
 
-`rate_limit` transparently delays requests to an exact host, port, and path.
+`rate_limit` transparently delays requests to an exact host and port. An
+optional exact path narrows the rule further.
 Each client IP receives an independent token bucket for each rule. `burst`
 defaults to one; increasing it permits that many immediate requests while
 preserving the configured long-term rate.

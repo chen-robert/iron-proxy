@@ -93,7 +93,8 @@ tls:
 
 # Transform configuration
 transforms:
-  # Transparently throttle an exact endpoint independently per client IP.
+  # Transparently throttle a host independently per client IP. Add path to
+  # narrow the rule to one exact endpoint.
   # - name: rate_limit
   #   config:
   #     rules:

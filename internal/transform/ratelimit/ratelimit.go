@@ -91,14 +91,16 @@ func compileRule(source ruleConfig) (*rule, error) {
 	if err != nil || portNumber == 0 {
 		return nil, fmt.Errorf("port must be an integer from 1 through 65535")
 	}
-	if source.Path == "" || !strings.HasPrefix(source.Path, "/") {
-		return nil, fmt.Errorf("path must be an absolute exact path")
-	}
-	if strings.ContainsAny(source.Path, "*?[]\\") {
-		return nil, fmt.Errorf("path must not contain glob or query syntax")
-	}
-	if decoded, err := url.PathUnescape(source.Path); err != nil || decoded != source.Path {
-		return nil, fmt.Errorf("path must use its canonical unescaped spelling")
+	if source.Path != "" {
+		if !strings.HasPrefix(source.Path, "/") {
+			return nil, fmt.Errorf("path must be an absolute exact path")
+		}
+		if strings.ContainsAny(source.Path, "*?[]\\") {
+			return nil, fmt.Errorf("path must not contain glob or query syntax")
+		}
+		if decoded, err := url.PathUnescape(source.Path); err != nil || decoded != source.Path {
+			return nil, fmt.Errorf("path must use its canonical unescaped spelling")
+		}
 	}
 	if source.RequestsPerSecond <= 0 {
 		return nil, fmt.Errorf("requests_per_second must be positive")
@@ -155,7 +157,7 @@ func (l *limiter) match(req *http.Request) *rule {
 		path = req.URL.Path
 	}
 	for _, rule := range l.rules {
-		if rule.host == host && rule.port == port && rule.path == path {
+		if rule.host == host && rule.port == port && (rule.path == "" || rule.path == path) {
 			return rule
 		}
 	}
